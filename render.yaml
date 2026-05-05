@@ -10,6 +10,8 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
+      - key: PYTHON_VERSION
+        value: "3.12.8"
       - key: DATABASE_URL
         fromDatabase:
           name: hepatoscan-postgres
