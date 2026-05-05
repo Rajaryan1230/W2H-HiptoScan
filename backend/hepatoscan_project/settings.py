@@ -88,6 +88,14 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
     if origin.strip()
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    regex.strip()
+    for regex in os.environ.get(
+        "CORS_ALLOWED_ORIGIN_REGEXES",
+        r"^https://w2-h-hipto-scan.*\.vercel\.app$",
+    ).split(",")
+    if regex.strip()
+]
 CORS_ALLOW_CREDENTIALS = True
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
