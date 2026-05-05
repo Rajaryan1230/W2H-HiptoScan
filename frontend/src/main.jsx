@@ -18,6 +18,15 @@ import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
+async function readApiResponse(response, fallbackMessage) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    return response.json();
+  }
+  const text = await response.text();
+  return { error: text || fallbackMessage };
+}
+
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem("hepatoscan_token") || "");
   const [user, setUser] = useState(() => {
@@ -70,7 +79,7 @@ function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(authForm),
     });
-    const data = await response.json();
+    const data = await readApiResponse(response, "Unable to authenticate");
     if (!response.ok) {
       setAuthError(data.error || "Unable to authenticate");
       return;
@@ -124,7 +133,7 @@ function App() {
         method: "POST",
         body: payload,
       });
-      const analysisData = await analysisResponse.json();
+      const analysisData = await readApiResponse(analysisResponse, "Analysis failed");
       if (!analysisResponse.ok) throw new Error(analysisData.error || "Analysis failed");
 
       setReport(analysisData.report);
@@ -136,7 +145,7 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, report: analysisData.report, analysisId: analysisData.analysisId }),
       });
-      const adviceData = await adviceResponse.json();
+      const adviceData = await readApiResponse(adviceResponse, "Advice generation failed");
       if (!adviceResponse.ok) throw new Error(adviceData.error || "Advice generation failed");
       setAdvice(adviceData.advice);
       setStatus("");
