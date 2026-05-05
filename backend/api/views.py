@@ -46,6 +46,25 @@ def health(_request):
     return JsonResponse({"status": "ok"})
 
 
+@require_GET
+def root(_request):
+    return JsonResponse(
+        {
+            "service": "HepatoScan AI backend",
+            "status": "ok",
+            "health": "/api/health/",
+            "auth": {
+                "signup": "/api/auth/signup/",
+                "signin": "/api/auth/signin/",
+            },
+            "endpoints": {
+                "analyze": "/api/hepato-analyze/",
+                "advice": "/api/hepato-advice/",
+            },
+        }
+    )
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def signup(request):
