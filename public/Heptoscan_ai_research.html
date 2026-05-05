@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HepatoScan AI — Liver Health Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #04080f;
+    --surface:  #0a1220;
+    --card:     #0f1e30;
+    --border:   #1a3050;
+    --accent:   #00d4ff;
+    --accent2:  #7b2fff;
+    --green:    #00f5a0;
+    --red:      #ff4757;
+    --orange:   #ffa502;
+    --text:     #e8f4ff;
+    --muted:    #6b8eac;
+    --radius:   12px;
+    --mono:     'Space Mono', monospace;
+    --display:  'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,212,255,0.015) 2px,
+      rgba(0,212,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,18,32,0.95);
+    backdrop-filter: blur(10px);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #8B4513, var(--orange));
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 18px;
+  }
+
+  .logo span { color: var(--orange); }
+
+  .badge {
+    font-size: 10px;
+    background: rgba(255,165,2,0.1);
+    border: 1px solid rgba(255,165,2,0.3);
+    color: var(--orange);
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+
+  .back-link:hover { color: var(--accent); }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    display: grid;
+    gap: 24px;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 40px 20px 32px;
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(28px, 6vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, var(--text) 30%, var(--orange));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 600px;
+    margin: 0 auto 24px;
+  }
+
+  .liver-tests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .test-chip {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+    letter-spacing: 0.5px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card-title {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    background: rgba(255,165,2,0.02);
+  }
+
+  .upload-zone:hover,
+  .upload-zone.drag-over {
+    border-color: var(--orange);
+    background: rgba(255,165,2,0.06);
+    transform: translateY(-2px);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+
+  .upload-icon { font-size: 42px; margin-bottom: 12px; }
+  .upload-zone h3 { font-family: var(--display); font-size: 16px; margin-bottom: 6px; }
+  .upload-zone p { color: var(--muted); font-size: 12px; }
+
+  .preview-wrap {
+    position: relative;
+    display: inline-block;
+    margin-top: 16px;
+  }
+
+  .preview-wrap img {
+    max-height: 220px;
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: -8px; right: -8px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--red);
+    border: none; cursor: pointer;
+    color: white; font-size: 12px;
+    display: grid; place-items: center;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--orange);
+  }
+
+  .field select option { background: var(--surface); }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, #8B4513, var(--orange));
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255,165,2,0.3);
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .progress-bar.active { display: block; }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8B4513, var(--orange));
+    border-radius: 2px;
+    animation: progress 3s ease-in-out infinite;
+  }
+
+  @keyframes progress {
+    0%   { width: 5%;  }
+    50%  { width: 80%; }
+    100% { width: 95%; }
+  }
+
+  .status-msg {
+    text-align: center;
+    font-size: 12px;
+    color: var(--orange);
+    margin-top: 8px;
+    min-height: 18px;
+    letter-spacing: 1px;
+    animation: blink 1.5s step-start infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0.4; } }
+
+  #reportSection { display: none; }
+  #reportSection.visible { display: block; }
+
+  .severity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .severity-badge.normal   { background: rgba(0,245,160,0.15); color: var(--green); border: 1px solid rgba(0,245,160,0.3); }
+  .severity-badge.mild     { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+  .severity-badge.moderate { background: rgba(255,165,2,0.15); color: var(--orange); border: 1px solid rgba(255,165,2,0.3); }
+  .severity-badge.severe   { background: rgba(255,71,87,0.15); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+
+  .findings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  .findings-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .findings-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(26,48,80,0.5);
+    vertical-align: top;
+  }
+
+  .findings-table tr:hover td { background: rgba(255,165,2,0.03); }
+
+  .sev {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .sev-normal   { background: rgba(0,245,160,0.15); color: var(--green);  }
+  .sev-mild     { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .sev-moderate { background: rgba(255,165,2,0.15); color: var(--orange); }
+  .sev-severe   { background: rgba(255,71,87,0.15); color: var(--red);    }
+
+  .info-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .info-block.green { border-left: 3px solid var(--green); }
+  .info-block.orange{ border-left: 3px solid var(--orange);}
+  .info-block.red   { border-left: 3px solid var(--red);   }
+  .info-block.blue  { border-left: 3px solid var(--accent); }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .advice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+
+  .advice-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+  }
+
+  .advice-num {
+    min-width: 24px; height: 24px;
+    background: linear-gradient(135deg, #8B4513, var(--orange));
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .disclaimer {
+    background: rgba(255,71,87,0.06);
+    border: 1px solid rgba(255,71,87,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: 1px solid var(--orange);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--orange);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,165,2,0.1);
+  }
+
+  .error-box {
+    background: rgba(255,71,87,0.1);
+    border: 1px solid rgba(255,71,87,0.3);
+    border-radius: 8px;
+    padding: 16px;
+    color: var(--red);
+    font-size: 13px;
+    display: none;
+    margin-top: 12px;
+  }
+
+  .error-box.visible { display: block; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .advice-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 10px; text-align: center; }
+    .findings-table { font-size: 11px; }
+    .findings-table th, .findings-table td { padding: 8px 10px; }
+    .hero h1 { font-size: 26px; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-in { animation: fadeUp 0.5s ease forwards; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-link">← Back to MediScan</a>
+  <div class="logo">
+    <div class="logo-icon">🫘</div>
+    Hepato<span>Scan</span> AI
+  </div>
+  <div class="badge">Powered by Gemini Vision</div>
+</header>
+
+<main>
+
+  <div class="hero">
+    <h1>Liver Health<br/>AI Analyzer</h1>
+    <p>Upload liver scan images — CT, MRI, Ultrasound, or FibroScan — and receive an instant AI-powered liver health assessment with personalized recommendations.</p>
+    <div class="liver-tests">
+      <span class="test-chip">🫘 Liver CT</span>
+      <span class="test-chip">🔬 Liver MRI</span>
+      <span class="test-chip">📊 FibroScan</span>
+      <span class="test-chip">🔍 Liver Ultrasound</span>
+      <span class="test-chip">🧪 Blood Reports</span>
+      <span class="test-chip">📋 Liver Function Tests</span>
+    </div>
+  </div>
+
+  <div class="card animate-in">
+    <div class="card-title">⬆ Upload Liver Scan / Report</div>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="image/*,.pdf" />
+      <div class="upload-icon">📂</div>
+      <h3>Drop liver scan image here</h3>
+      <p>Supports JPG, PNG, WEBP, TIFF, PDF · Max 20 MB</p>
+      <div id="previewWrap" class="preview-wrap" style="display:none;">
+        <img id="previewImg" src="" alt="preview" />
+        <button class="remove-btn" id="removeBtn" title="Remove">✕</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>Test / Scan Type</label>
+        <select id="testType">
+          <option value="Liver CT">Liver CT Scan</option>
+          <option value="Liver MRI">Liver MRI</option>
+          <option value="Liver Ultrasound">Liver Ultrasound</option>
+          <option value="FibroScan">FibroScan (Elastography)</option>
+          <option value="Liver Function Test">Liver Function Blood Test</option>
+          <option value="HBV DNA Test">Hepatitis B DNA Test</option>
+          <option value="HCV RNA Test">Hepatitis C RNA Test</option>
+          <option value="Alpha-fetoprotein">Alpha-fetoprotein (AFP) Test</option>
+          <option value="Liver Biopsy">Liver Biopsy Report</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Patient Age</label>
+        <input type="number" id="patientAge" placeholder="e.g. 45" min="0" max="120" />
+      </div>
+
+      <div class="field">
+        <label>Patient Sex</label>
+        <select id="patientSex">
+          <option value="Not specified">Not specified</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Alcohol Consumption</label>
+        <select id="alcoholUse">
+          <option value="None">None</option>
+          <option value="Occasional">Occasional</option>
+          <option value="Regular">Regular</option>
+          <option value="Heavy">Heavy</option>
+        </select>
+      </div>
+
+      <div class="field" style="grid-column: 1 / -1;">
+        <label>Symptoms / Clinical Notes</label>
+        <textarea id="symptoms" placeholder="e.g. Fatigue, abdominal pain, jaundice, history of hepatitis, medications..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="analyseBtn" disabled>
+      <span id="btnIcon">🔬</span>
+      <span id="btnText">Analyze Liver Scan</span>
+    </button>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <div id="reportSection">
+
+    <div class="card animate-in" id="reportCard">
+      <div class="card-title">📋 Liver Health Assessment <span style="font-size:10px;color:var(--muted);margin-left:8px;">via Gemini Flash Vision</span></div>
+
+      <div id="severityBadge"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;" id="metaGrid"></div>
+
+      <div class="card-title" style="font-size:11px;margin-bottom:8px;">🔍 Key Findings</div>
+      <div style="overflow-x:auto;">
+        <table class="findings-table" id="findingsTable">
+          <thead>
+            <tr>
+              <th>Parameter / Region</th>
+              <th>Observation</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="findingsBody"></tbody>
+        </table>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="card-title" style="font-size:11px;">💡 Clinical Impression</div>
+      <div class="info-block blue" id="impressionBlock"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;">🎯 Possible Conditions</div>
+      <div class="tag-list" id="conditionsList"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;">📅 Recommended Follow-Up</div>
+      <div class="info-block" id="followUpBlock"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;">⚠️ Limitations</div>
+      <div class="info-block orange" id="limitationsBlock"></div>
+    </div>
+
+    <div class="card animate-in" id="adviceCard">
+      <div class="card-title">💬 Personalized Liver Health Advice <span style="font-size:10px;color:var(--muted);margin-left:8px;">via Gemini Pro</span></div>
+
+      <div class="card-title" style="font-size:11px;margin-bottom:6px;">🗣 In Plain Language</div>
+      <div class="info-block green" id="simpleSummary"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;margin-bottom:6px;">🩺 What This Means</div>
+      <div class="info-block" id="whatItMeans"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;margin-bottom:6px;">✅ Lifestyle Recommendations</div>
+      <div class="advice-grid" id="recommendationsGrid"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;margin-bottom:6px;">🚨 Warning Signs to Watch</div>
+      <div id="warningBlock"></div>
+
+      <div class="card-title" style="font-size:11px;margin-top:20px;margin-bottom:6px;">👨‍⚕️ Specialist Referral</div>
+      <div class="info-block blue" id="referralBlock"></div>
+
+      <div class="disclaimer" id="disclaimerBlock"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+      <button class="btn-secondary" onclick="printReport()">🖨 Print Report</button>
+      <button class="btn-secondary" onclick="downloadJSON()">⬇ Download JSON</button>
+      <button class="btn-secondary" onclick="resetApp()">🔄 New Scan</button>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  HepatoScan AI · Powered by Google Gemini Flash (Vision) ·
+  This is an AI tool — not a substitute for professional medical advice. Always consult a hepatologist or gastroenterologist.
+</footer>
+
+<script>
+let currentFile = null;
+let fullReport = {};
+let fullAdvice = {};
+
+const fileInput = document.getElementById("fileInput");
+const uploadZone = document.getElementById("uploadZone");
+const previewWrap = document.getElementById("previewWrap");
+const previewImg = document.getElementById("previewImg");
+const removeBtn = document.getElementById("removeBtn");
+const analyseBtn = document.getElementById("analyseBtn");
+const progressBar = document.getElementById("progressBar");
+const statusMsg = document.getElementById("statusMsg");
+const errorBox = document.getElementById("errorBox");
+const reportSection = document.getElementById("reportSection");
+const btnText = document.getElementById("btnText");
+const btnIcon = document.getElementById("btnIcon");
+
+fileInput.addEventListener("change", e => handleFile(e.target.files[0]));
+
+uploadZone.addEventListener("dragover", e => {
+  e.preventDefault();
+  uploadZone.classList.add("drag-over");
+});
+uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
+uploadZone.addEventListener("drop", e => {
+  e.preventDefault();
+  uploadZone.classList.remove("drag-over");
+  handleFile(e.dataTransfer.files[0]);
+});
+
+removeBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  currentFile = null;
+  previewWrap.style.display = "none";
+  previewImg.src = "";
+  fileInput.value = "";
+  analyseBtn.disabled = true;
+});
+
+function handleFile(file) {
+  if (!file) return;
+  currentFile = file;
+  analyseBtn.disabled = false;
+
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewWrap.style.display = "inline-block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    previewImg.src = "";
+    previewWrap.style.display = "none";
+  }
+}
+
+analyseBtn.addEventListener("click", runAnalysis);
+
+async function runAnalysis() {
+  if (!currentFile) return;
+
+  analyseBtn.disabled = true;
+  btnIcon.textContent = "⏳";
+  btnText.textContent = "Analyzing…";
+  progressBar.classList.add("active");
+  reportSection.classList.remove("visible");
+  errorBox.classList.remove("visible");
+  setStatus("📡 Uploading scan to Gemini Vision…");
+
+  try {
+    const formData = new FormData();
+    formData.append("file", currentFile);
+    formData.append("testType", document.getElementById("testType").value);
+    formData.append("patientAge", document.getElementById("patientAge").value || "Unknown");
+    formData.append("patientSex", document.getElementById("patientSex").value);
+    formData.append("symptoms", document.getElementById("symptoms").value || "Not specified");
+    formData.append("alcoholUse", document.getElementById("alcoholUse").value);
+    formData.append("scanCategory", "liver");
+
+    const r1 = await fetch("/api/hepato-analyze", { method: "POST", body: formData });
+    if (!r1.ok) {
+      const e = await r1.json();
+      throw new Error(e.error || "Analysis failed");
+    }
+    const d1 = await r1.json();
+    fullReport = d1.report;
+    setStatus("🧠 Generating personalized liver health advice…");
+
+    const r2 = await fetch("/api/hepato-advice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        report: fullReport,
+        patientAge: document.getElementById("patientAge").value || "Unknown",
+        patientSex: document.getElementById("patientSex").value,
+        symptoms: document.getElementById("symptoms").value || "Not specified",
+        alcoholUse: document.getElementById("alcoholUse").value,
+      }),
+    });
+    if (!r2.ok) {
+      const e = await r2.json();
+      throw new Error(e.error || "Advice generation failed");
+    }
+    const d2 = await r2.json();
+    fullAdvice = d2.advice;
+
+    renderReport(fullReport);
+    renderAdvice(fullAdvice);
+
+    reportSection.classList.add("visible");
+    reportSection.scrollIntoView({ behavior: "smooth" });
+    setStatus("");
+
+  } catch (err) {
+    showError(err.message);
+    setStatus("");
+  } finally {
+    progressBar.classList.remove("active");
+    analyseBtn.disabled = false;
+    btnIcon.textContent = "🔬";
+    btnText.textContent = "Analyze Liver Scan";
+  }
+}
+
+function renderReport(r) {
+  if (!r) return;
+
+  const sev = (r.severity || "normal").toLowerCase();
+  document.getElementById("severityBadge").innerHTML = `
+    <span class="severity-badge ${sev}">
+      ${sev === "severe" ? "🚨" : sev === "moderate" ? "⚡" : sev === "mild" ? "⚠️" : "✅"}
+      ${r.severity || "Normal"}
+    </span>`;
+
+  document.getElementById("metaGrid").innerHTML = `
+    <div class="info-block">
+      <strong style="color:var(--muted);font-size:11px;letter-spacing:1px;">ASSESSMENT TITLE</strong><br/>
+      ${r.reportTitle || "Liver Health Assessment"}
+    </div>
+    <div class="info-block">
+      <strong style="color:var(--muted);font-size:11px;letter-spacing:1px;">SCAN QUALITY</strong><br/>
+      ${r.scanQuality || "—"}
+    </div>`;
+
+  const tbody = document.getElementById("findingsBody");
+  tbody.innerHTML = "";
+  const findings = Array.isArray(r.findings) ? r.findings : [];
+  if (findings.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:20px;">No specific findings listed.</td></tr>`;
+  } else {
+    findings.forEach(f => {
+      const st = (f.status || "normal").toLowerCase();
+      tbody.insertAdjacentHTML("beforeend", `
+        <tr>
+          <td><strong>${f.parameter || "—"}</strong></td>
+          <td>${f.observation || "—"}</td>
+          <td><span class="sev sev-${st}">${f.status || "Normal"}</span></td>
+        </tr>`);
+    });
+  }
+
+  document.getElementById("impressionBlock").textContent = r.impression || "—";
+  document.getElementById("followUpBlock").textContent = r.recommendedFollowUp || "—";
+  document.getElementById("limitationsBlock").textContent = r.limitations || "—";
+
+  const cl = document.getElementById("conditionsList");
+  cl.innerHTML = "";
+  const conds = Array.isArray(r.possibleConditions) ? r.possibleConditions : [];
+  if (conds.length === 0) {
+    cl.innerHTML = `<span class="tag" style="color:var(--muted);">None specified</span>`;
+  } else {
+    conds.forEach(c => cl.insertAdjacentHTML("beforeend", `<span class="tag">${c}</span>`));
+  }
+}
+
+function renderAdvice(a) {
+  if (!a) return;
+
+  document.getElementById("simpleSummary").textContent = a.simpleSummary || a.raw || "—";
+  document.getElementById("whatItMeans").textContent = a.whatItMeans || "—";
+  document.getElementById("referralBlock").textContent = a.specialistReferral || "Consult a hepatologist or gastroenterologist for personalized care.";
+  document.getElementById("disclaimerBlock").innerHTML = `⚠️ <strong>Disclaimer:</strong> ${a.disclaimer || "This report is AI-generated and is not a substitute for professional medical diagnosis. Please consult a qualified healthcare provider."}`;
+
+  const rg = document.getElementById("recommendationsGrid");
+  rg.innerHTML = "";
+  const recs = Array.isArray(a.recommendations) ? a.recommendations : [];
+  recs.forEach((rec, i) => {
+    rg.insertAdjacentHTML("beforeend", `
+      <div class="advice-item">
+        <div class="advice-num">${i + 1}</div>
+        <div>${rec}</div>
+      </div>`);
+  });
+
+  const wb = document.getElementById("warningBlock");
+  const warns = Array.isArray(a.warningSigns) ? a.warningSigns : [];
+  if (warns.length === 0) {
+    wb.innerHTML = `<div class="info-block green">No immediate warning signs identified. Continue regular monitoring.</div>`;
+  } else {
+    wb.innerHTML = warns.map(w => `<div class="info-block red" style="margin-bottom:8px;">🚨 ${w}</div>`).join("");
+  }
+}
+
+function setStatus(msg) { statusMsg.textContent = msg; }
+
+function showError(msg) {
+  errorBox.textContent = `❌ Error: ${msg}`;
+  errorBox.classList.add("visible");
+}
+
+function resetApp() {
+  currentFile = null;
+  fullReport = {};
+  fullAdvice = {};
+  fileInput.value = "";
+  previewWrap.style.display = "none";
+  previewImg.src = "";
+  analyseBtn.disabled = true;
+  reportSection.classList.remove("visible");
+  errorBox.classList.remove("visible");
+  setStatus("");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function printReport() { window.print(); }
+
+function downloadJSON() {
+  const data = { report: fullReport, advice: fullAdvice, generatedAt: new Date().toISOString(), type: "Liver Health Assessment" };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `hepatoscan-report-${Date.now()}.json`;
+  a.click();
+}
+</script>
+
+</body>
+</html>

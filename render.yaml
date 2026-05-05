@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: hepatoscan-backend
+    env: python
+    rootDir: backend
+    buildCommand: bash build.sh
+    startCommand: gunicorn hepatoscan_project.wsgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hepatoscan-postgres
+          property: connectionString
+      - key: DATABASE_SSL
+        value: "True"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+databases:
+  - name: hepatoscan-postgres
+    databaseName: hepatoscan
+    user: hepatoscan

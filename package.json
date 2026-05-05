@@ -1,0 +1,12 @@
+{
+  "name": "hepatoscan-ai-monorepo",
+  "version": "1.0.0",
+  "description": "HepatoScan AI split into Django backend and React frontend",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "backend:dev": "cd backend && python manage.py runserver",
+    "backend:migrate": "cd backend && python manage.py migrate"
+  }
+}
