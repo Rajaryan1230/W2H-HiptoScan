@@ -4,8 +4,19 @@ import requests
 from django.conf import settings
 
 
+LEGACY_MODEL_REPLACEMENTS = {
+    "gemini-1.5-flash": "gemini-2.5-flash",
+    "gemini-1.5-pro": "gemini-2.5-pro",
+}
+
+
+def _normalize_model(model):
+    model = (model or settings.GEMINI_TEXT_MODEL).removeprefix("models/")
+    return LEGACY_MODEL_REPLACEMENTS.get(model, model)
+
+
 def _gemini_url(model):
-    return f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={settings.GEMINI_API_KEY}"
+    return f"https://generativelanguage.googleapis.com/v1beta/models/{_normalize_model(model)}:generateContent?key={settings.GEMINI_API_KEY}"
 
 
 def generate_json(prompt, *, file_obj=None, mime_type=None, model=None, temperature=0.2):
@@ -27,7 +38,7 @@ def generate_json(prompt, *, file_obj=None, mime_type=None, model=None, temperat
         )
 
     response = requests.post(
-        _gemini_url(model or settings.GEMINI_TEXT_MODEL),
+        _gemini_url(model),
         json={
             "contents": [{"parts": parts}],
             "generationConfig": {
