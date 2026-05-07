@@ -17,6 +17,8 @@ DATABASE_SSL=True
 ALLOWED_HOSTS=.onrender.com
 CORS_ALLOWED_ORIGINS=https://your-frontend.vercel.app
 GEMINI_API_KEY=replace-with-google-gemini-key
+GEMINI_VISION_MODEL=gemini-2.5-flash
+GEMINI_TEXT_MODEL=gemini-2.5-pro
 ```
 
 Render can use the root `render.yaml`. It creates a web service from `backend/` and a Render Postgres database.
@@ -30,6 +32,14 @@ python -m venv .venv
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
+```
+
+Check the Gemini production key and model access:
+
+```bash
+python scripts/check_gemini.py
+cd backend && python scripts/check_gemini.py
+python scripts/check_gemini.py --models gemini-2.5-flash,gemini-2.5-pro
 ```
 
 ## Frontend: Vercel
