@@ -1,0 +1,29 @@
+W2H-HiptoScan
+===========================
+1. Create GitHub
+    https://github.com/Rajaryan1230/W2H-HiptoScan.git
+
+
+2. Postgres instance
+Instance: W2H-HiptoScanDBInstance
+Project: W2H-HiptoScan
+DB Name: w2hhiptoscandb
+User: postgress
+Host Name: dpg-d7skkojrjlhs73cr1f50-a
+Port: 5432
+DB Password: v5LOXUt2qcDdodW91BYhiQdDKuZQoHAe
+Internal URL:    postgresql://postgress:v5LOXUt2qcDdodW91BYhiQdDKuZQoHAe@dpg-d7skkojrjlhs73cr1f50-a/w2hhiptoscandb
+External URL:    postgresql://postgress:v5LOXUt2qcDdodW91BYhiQdDKuZQoHAe@dpg-d7skkojrjlhs73cr1f50-a.ohio-postgres.render.com/w2hhiptoscandb
+
+
+3. Google studio
+Google API KEy: AIzaSyAsrP3gEHegNO6WiEJohWXiyoCvr32aFKo
+
+
+
+Split the given application from current Dir into Backend and Frontend 
+Backend needs to write into (DJANGO) and will deployed into render.com
+Frontend needs to write into (REACT) and will be deployed into vercel.com
+Database will be postgress which is sitting on Render. It need to have user signin and signup 
+
+code need to push into GitHub  https://github.com/Rajaryan1230/W2H-HiptoScan.git
